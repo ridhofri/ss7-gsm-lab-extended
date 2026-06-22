@@ -1,15 +1,44 @@
-# SS7 / GSM Simulation Lab — Extended
+<h1 align="center">SS7 / GSM Simulation Lab — Extended</h1>
 
-![License](https://img.shields.io/badge/license-MIT-green) ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white) ![Stack](https://img.shields.io/badge/stack-Osmocom-1f6feb) ![Protocols](https://img.shields.io/badge/protocols-SS7%20%7C%20SIGTRAN%20%7C%20GSM-blue) ![Status](https://img.shields.io/badge/status-educational-success)
+<p align="center">
+  A fully containerized, <strong>isolated</strong> SS7/GSM core <strong>and</strong> radio access network —
+  where a software-defined virtual handset camps on a cell, authenticates, registers (Location Update),
+  and exchanges SMS, with <strong>no physical radio hardware</strong>.
+</p>
 
-A fully containerized, **isolated** SS7/GSM core **and** radio access network built with
-[Osmocom](https://osmocom.org) and Docker. This project extends a core-only signaling lab
-into a **complete end-to-end 2G network**, where a software-defined virtual handset
-**camps on a cell, authenticates, registers (Location Update), and exchanges SMS** —
-with no physical radio hardware.
+<p align="center">
+  <img src="https://img.shields.io/badge/license-MIT-green" alt="License">
+  <img src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white" alt="Docker">
+  <img src="https://img.shields.io/badge/stack-Osmocom-1f6feb" alt="Stack">
+  <img src="https://img.shields.io/badge/protocols-SS7%20%7C%20SIGTRAN%20%7C%20GSM-blue" alt="Protocols">
+  <img src="https://img.shields.io/badge/status-educational-success" alt="Status">
+</p>
 
-> ⚠️ **Educational / research use only.** Everything runs on `localhost` with a *test* SIM and
+<p align="center">
+  <img src="docs/img/architecture.png" alt="End-to-end architecture: handset -> virtual BTS -> BSC -> SS7 core" width="780">
+</p>
+
+> [!WARNING]
+> **Educational / research use only.** Everything runs on `localhost` with a *test* SIM and
 > **no RF transmission**. See the [Disclaimer](#disclaimer).
+
+---
+
+## Table of Contents
+
+- [Highlights](#highlights)
+- [Overview](#overview)
+- [Attribution](#attribution)
+- [Architecture](#architecture)
+- [Components](#components)
+- [Prerequisites](#prerequisites)
+- [Quick Start](#quick-start)
+- [Results](#results)
+- [Project Structure](#project-structure)
+- [Troubleshooting Highlights](#troubleshooting-highlights)
+- [Limitations](#limitations)
+- [Disclaimer](#disclaimer)
+- [License](#license)
 
 ---
 
@@ -20,8 +49,6 @@ with no physical radio hardware.
 - **SMS service** — mobile-terminated SMS delivered over the simulated air interface.
 - **Fully observable** — every step traceable in application logs, the Osmocom VTY, and Wireshark (DTAP/BSSAP on the A-interface).
 - **No hardware required** — the radio (Um) is simulated via GSMTAP multicast; runs entirely on one host.
-
----
 
 ## Overview
 
@@ -46,6 +73,19 @@ by this repository's author.
 
 ## Architecture
 
+The diagram at the top shows the full path from the virtual handset down to the SS7 core.
+Each interface and its transport:
+
+| Interface | Between        | Protocol stack                 | Transport                       |
+|-----------|----------------|--------------------------------|---------------------------------|
+| **Um**    | mobile ↔ BTS   | GSM L1 / L2 / L3               | GSMTAP multicast (simulated RF) |
+| **Abis**  | BTS ↔ BSC      | OML + RSL                      | IPA / TCP : 3002 / 3003         |
+| **A**     | BSC ↔ MSC      | DTAP / BSSAP / SCCP / M3UA     | SCTP : 2906 (via STP)           |
+| **GSUP**  | MSC ↔ HLR      | GSUP                           | TCP : 4222                      |
+
+<details>
+<summary>Text (ASCII) version of the architecture</summary>
+
 ```
 ┌──────────────────────────────────────────────────────────────────┐
 │  Subscriber side  (osmocom-bb, built from source)                  │
@@ -67,24 +107,19 @@ by this repository's author.
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
-| Interface | Between        | Protocol stack                 | Transport                       |
-|-----------|----------------|--------------------------------|---------------------------------|
-| **Um**    | mobile ↔ BTS   | GSM L1 / L2 / L3               | GSMTAP multicast (simulated RF) |
-| **Abis**  | BTS ↔ BSC      | OML + RSL                      | IPA / TCP : 3002 / 3003         |
-| **A**     | BSC ↔ MSC      | DTAP / BSSAP / SCCP / M3UA     | SCTP : 2906 (via STP)           |
-| **GSUP**  | MSC ↔ HLR      | GSUP                           | TCP : 4222                      |
+</details>
 
 ## Components
 
-| Service             | Role                          | VTY (telnet) |
-|---------------------|-------------------------------|:------------:|
-| `osmo-stp`          | SS7 / SIGTRAN router (M3UA)   | 4239         |
-| `osmo-msc`          | Mobile Switching Centre       | 4254         |
-| `osmo-hlr`          | Home Location Register        | 4258         |
-| `osmo-mgw`          | Media Gateway                 | —            |
-| `osmo-bsc`          | Base Station Controller       | 4242         |
-| `osmo-bts-virtual`  | Virtual BTS                   | 4241         |
-| `mobile` (osmocom-bb) | Virtual handset             | 4247         |
+| Service               | Role                          | VTY (telnet) |
+|-----------------------|-------------------------------|:------------:|
+| `osmo-stp`            | SS7 / SIGTRAN router (M3UA)   | 4239         |
+| `osmo-msc`            | Mobile Switching Centre       | 4254         |
+| `osmo-hlr`            | Home Location Register        | 4258         |
+| `osmo-mgw`            | Media Gateway                 | —            |
+| `osmo-bsc`            | Base Station Controller       | 4242         |
+| `osmo-bts-virtual`    | Virtual BTS                   | 4241         |
+| `mobile` (osmocom-bb) | Virtual handset               | 4247         |
 
 **Point codes:** STP `0.23.0`, BSC `0.23.1`, MSC `0.23.2`.
 
@@ -173,11 +208,11 @@ The MSC confirms `AUTH established GSM security context` and reaches state
 
 ### Default subscriber
 
-| Field   | Value                |
-|---------|----------------------|
-| IMSI    | `001010000000001`    |
-| MSISDN  | `1001`               |
-| Auth    | COMP128v1 (2G)       |
+| Field   | Value                       |
+|---------|-----------------------------|
+| IMSI    | `001010000000001`           |
+| MSISDN  | `1001`                      |
+| Auth    | COMP128v1 (2G)              |
 | PLMN    | MCC `001` / MNC `01` (Test) |
 
 ## Project Structure
@@ -191,6 +226,7 @@ docker/
   ├─ bts-virtual/              Abis / virtual BTS   (added)
   └─ bb/                       osmocom-bb handset   (added)
 scripts/                helper scripts
+docs/                   documentation & images
 ```
 
 ## Troubleshooting Highlights
@@ -236,5 +272,6 @@ please preserve the attribution noted above.
 
 ---
 
-*Maintained by [@ridhofri](https://github.com/ridhofri). Built as part of telecommunications
-engineering coursework, 2026.*
+<p align="center">
+  <em>Maintained by <a href="https://github.com/ridhofri">@ridhofri</a> · Built as part of telecommunications engineering coursework, 2026.</em>
+</p>
