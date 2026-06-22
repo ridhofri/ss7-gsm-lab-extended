@@ -15,7 +15,33 @@
 </p>
 
 <p align="center">
-  <img src="docs/img/architecture.png" alt="End-to-end architecture: handset -> virtual BTS -> BSC -> SS7 core" width="780">
+[ mobile ]                 osmocom-bb virtual handset (MS)
+                             |
+                             |   L1CTL : unix socket /tmp/osmocom_l2
+                             |
+                        [ virtphy ]                 virtual L1 / PHY
+                             |
+                             |   Um : GSMTAP multicast  (simulated radio)
+                             |        DL 239.193.23.1 / UL 239.193.23.2 : 4729
+                             |
+                   [ osmo-bts-virtual ]             BTS
+                             |
+                             |   Abis : OML + RSL   (IPA 3002 / 3003)
+                             |
+                       [ osmo-bsc ]                 BSC   (point code 0.23.1)
+                             |
+                             |   A-interface : BSSAP / SCCP   (over M3UA)
+                             |
+                       [ osmo-stp ]                 SS7 / SIGTRAN router
+                             |                      (M3UA @ 2906, point code 0.23.0)
+                             |   M3UA / SCTP
+                             |
+                       [ osmo-msc ]                 MSC   (point code 0.23.2)
+                          /        \
+              GSUP : 4222          MGCP : 2427
+                        /            \
+                 [ osmo-hlr ]    [ osmo-mgw ]
+                 subscriber DB   media gateway
 </p>
 
 > [!WARNING]
