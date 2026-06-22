@@ -1,0 +1,12 @@
+# hasil runtime & capture
+logs/
+*.pcap
+*.pcapng
+*.log
+# database osmocom runtime
+*.db
+*.sqlite3
+.osmocom/
+# sampah OS/editor
+.DS_Store
+*~

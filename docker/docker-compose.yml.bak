@@ -1,0 +1,63 @@
+services:
+  stp:
+    build:
+      context: .
+      dockerfile: stp/Dockerfile
+    container_name: ss7lab-stp
+    volumes:
+      - ../config/osmo-stp.cfg:/etc/osmocom/osmo-stp.cfg:ro
+    network_mode: host
+    restart: unless-stopped
+
+  hlr:
+    build:
+      context: .
+      dockerfile: hlr/Dockerfile
+    container_name: ss7lab-hlr
+    volumes:
+      - ../config/osmo-hlr.cfg:/etc/osmocom/osmo-hlr.cfg:ro
+      - ../data/hlr:/var/lib/osmocom
+    network_mode: host
+    restart: unless-stopped
+
+  mgw:
+    build:
+      context: .
+      dockerfile: mgw/Dockerfile
+    container_name: ss7lab-mgw
+    volumes:
+      - ../config/osmo-mgw.cfg:/etc/osmocom/osmo-mgw.cfg:ro
+    network_mode: host
+    restart: unless-stopped
+
+  msc:
+    build:
+      context: .
+      dockerfile: msc/Dockerfile
+    container_name: ss7lab-msc
+    depends_on:
+      - stp
+      - hlr
+      - mgw
+    volumes:
+      - ../config/osmo-msc.cfg:/etc/osmocom/osmo-msc.cfg:ro
+      - ../logs:/var/log/osmocom
+    network_mode: host
+    restart: unless-stopped
+
+  # Optional RAN pieces (build and enable when needed)
+  # bsc:
+  #   build: ./bsc
+  #   container_name: ss7lab-bsc
+  #   volumes:
+  #     - ../config/osmo-bsc.cfg:/etc/osmocom/osmo-bsc.cfg:ro
+  #   network_mode: host
+  #   restart: unless-stopped
+  #
+  # bts:
+  #   build: ./bts-virtual
+  #   container_name: ss7lab-bts-virtual
+  #   volumes:
+  #     - ../config/osmo-bts-virtual.cfg:/etc/osmocom/osmo-bts-virtual.cfg:ro
+  #   network_mode: host
+  #   restart: unless-stopped
